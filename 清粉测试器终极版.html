@@ -1,0 +1,321 @@
+def create_qingfen_html():
+    html_content = '''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清粉检测器</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:微软雅黑;}
+        body{background:#121212;color:#fff;min-height:100vh}
+        .container{max-width:900px;margin:0 auto;padding:30px 20px}
+        .header{text-align:center;margin-bottom:30px}
+        .header h1{font-size:36px;margin-bottom:10px}
+        .subtitle{font-size:14px;color:#aaa;margin-bottom:20px}
+        .header-note{font-size:14px;color:#999;margin-bottom:20px}
+        .tag{display:inline-block;padding:4px 10px;background:#222;color:#0cf;border-radius:20px;font-size:12px;margin-bottom:20px}
+        .btn-group{display:flex;justify-content:center;gap:15px;margin-bottom:30px;flex-wrap:wrap}
+        .btn{padding:12px 24px;border-radius:8px;border:none;font-size:16px;cursor:pointer}
+        .btn-primary{background:#6366f1;color:white}
+        .btn-secondary{background:#222;color:white}
+        .stats{display:flex;justify-content:space-around;margin-bottom:30px;text-align:center;flex-wrap:wrap;gap:15px}
+        .stat-item{font-size:24px;font-weight:bold}
+        .stat-item span{display:block;font-size:12px;color:#888;font-weight:normal}
+        .page{display:none}
+        .page.active{display:block}
+        .question-box{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px}
+        .options{display:flex;flex-direction:column;gap:10px;margin-top:15px}
+        .option{background:#2a2a2a;padding:12px;border-radius:8px;cursor:pointer}
+        .option:hover{background:#333}
+        .option.selected{background:#6366f1;color:white}
+        .admin-box{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px}
+        input{width:100%;padding:10px;background:#2a2a2a;border:none;color:white;border-radius:8px;margin-bottom:10px}
+        .result-card{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px}
+        .score{font-size:28px;color:#f43f5e;font-weight:bold;margin:10px 0}
+        .bar{height:12px;background:#2a2a2a;border-radius:6px;margin:8px 0;overflow:hidden}
+        .bar-fill{height:100%;border-radius:6px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="home" class="page active">
+        <div class="header">
+            <div class="tag">免费在线测试</div>
+            <h1>你是清粉吗？</h1>
+            <p class="header-note">载湉小丑，未辨菽麦 —— 章太炎</p>
+            <p class="subtitle">从全题库随机抽取20题</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="goTest()">开始测试</button>
+            <button class="btn btn-secondary" onclick="goAdmin()">题库管理</button>
+        </div>
+        <div class="stats">
+            <div class="stat-item">0<span>累计测试</span></div>
+            <div class="stat-item"><span id="totalQuestionCount">0</span><span>总题库数</span></div>
+            <div class="stat-item">20<span>本次答题</span></div>
+        </div>
+        <div class="result-card">
+            <h3>全网结果比例</h3>
+            <div id="globalRatioBars"></div>
+        </div>
+    </div>
+
+    <div id="test" class="page">
+        <div class="question-box">
+            <h2 id="qtitle">加载中...</h2>
+            <div class="options" id="opts"></div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" id="nextBtn" disabled>下一题</button>
+        </div>
+        <p style="text-align:center;color:#888;" id="progress"></p>
+    </div>
+
+    <div id="result" class="page">
+        <div class="result-card">
+            <h1>你的结果</h1>
+            <div class="score" id="finalScore"></div>
+            <p id="resultDesc"></p>
+        </div>
+        <div class="result-card">
+            <h3>倾向分析</h3>
+            <div id="scoreBars"></div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="restart()">再测一次</button>
+            <button class="btn btn-secondary" onclick="goHome()">首页</button>
+        </div>
+    </div>
+
+    <div id="admin" class="page">
+        <div class="admin-box">
+            <h2>新增题目</h2>
+            <input id="title" placeholder="题目内容">
+            <input id="opt1" placeholder="清粉倾向选项（+5分）">
+            <input id="opt2" placeholder="反清倾向选项（-5分）">
+            <button class="btn btn-primary" onclick="addQuestion()">添加题目</button>
+        </div>
+        <div class="admin-box">
+            <h2>题库列表（<span id="qcount">0</span> 题）</h2>
+            <div id="list"></div>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="goHome()">返回首页</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==========================
+// 原始完整20题（已全部恢复）
+// ==========================
+const defaultQuestions = [
+    { title: "你认为清朝是否是中国古代最强盛的封建王朝？", options: [{ text: "是，人口和领土都是旷世未有", score: 5 }, { text: "否，在横向对比维度，清朝开始落后于世界", score: -5 }] },
+    { title: "你对康乾盛世的描述是否认可", options: [{ text: "认可，人口突破三亿，百姓负担低，轻徭薄赋", score: 5 }, { text: "不认可，起义连绵不绝，绝大多数人生活在生死线上", score: -5 }] },
+    { title: "你认为清朝的人口滋生和清王朝的制度、君主水平是否有关", options: [{ text: "是，清朝皇帝尊重儒家伦理，强调以民为本，各项制度都是按此方针制定执行", score: 5 }, { text: "否，主要还是生产力自身的提升，和清朝皇帝的主观意志没什么关系", score: -5 }] },
+    { title: "你是否认为现代中国的版图是清朝奠定的（或者清朝领土贡献论）？", options: [{ text: "是，清朝是第一个用威斯特伐利亚体系奠定领土基础的王朝，对于边区的实控比起历朝历代显著增强", score: 5 }, { text: "否，中国的版图法理是自古以来而非自清以来，现代实际领土是人民解放军一寸寸打下来的", score: -5 }] },
+    { title: "你是否认为清承明制，清朝的弊病并不存在显著特殊性，而是前朝的锅？", options: [{ text: "认可，清朝的各种制度都是延续明朝，有问题也是明朝或以前的封建王朝的锅", score: 5 }, { text: "不认可，清朝明面上延用明制，但实际上大肆篡改，例如在民族问题上存在显著歧视等等，这些都是前朝没有的", score: -5 }] },
+    { title: "《红楼梦》的作者是洪升或曹寅，具有反清思想，你对此观点的态度是？", options: [{ text: "不认可，索隐派喜欢牵强附会", score: 5 }, { text: "认可/不绝对排斥，胡适那些民国大师的水平好不到哪去", score: -5 }] },
+    { title: "明朝皇帝普遍怠惰，清朝皇帝普遍勤政", options: [{ text: "认可，明朝皇帝奇葩多，清朝皇帝中规中矩", score: 5 }, { text: "不认可，明朝内阁在起作用，不能以是否上朝判断皇帝是否尽职尽责", score: -5 }] },
+    { title: "乾隆的十全武功充分体现出其超越明朝历代皇帝的军事水准？", options: [{ text: "是，乾隆水平吊打秦皇汉武", score: 5 }, { text: "否，乾隆打的胜仗都是捏软柿子", score: -5 }] },
+    { title: "乾隆编纂《四库全书》是一场对文化的浩劫，危害性远大于所谓的'焚书坑儒'", options: [{ text: "认可，有大量文化典籍本销毁或篡改", score: -5 }, { text: "不认可，这是文化事业上的盛举，比《永乐大帝》珍贵多了", score: 5 }] },
+    { title: "你是否认为明朝的识字率要高于清朝？", options: [{ text: "认可，明朝民间讲学风气浓厚，小说井喷", score: -5 }, { text: "不认可，文字狱就是明朝的特色，文官集团动不动挨板子", score: 5 }] },
+    { title: "你对晚清的普遍印象", options: [{ text: "具有进取精神，洋务运动、戊戌变法、清末新政展现出对西方先进科技思想的追求，打破了传统王朝的天朝上国心态", score: 5 }, { text: "丧权辱国，各种条约数不胜数，连日本这种刚刚工业化起步的农业国都打不过，识字率不到1%，简直凄凄惨惨戚戚", score: -5 }] },
+    { title: "清朝对台湾的综合治理水平远高于明朝", options: [{ text: "认可，施琅大将军收复台湾，功德无量，《马关条约》不赖清帝，赖儒家文化的僵化", score: 5 }, { text: "不认可，台湾岛上常常起义，反而是明朝治理更好，维护岛民权益", score: -5 }] },
+    { title: "你对'中兴名臣'曾左李胡的态度", options: [{ text: "平定太平天国，戡乱有功，推行洋务，为晚清续命50年，功大于过", score: 5 }, { text: "刽子手，残酷镇压农民起义，心理扭曲，这也叫名臣？", score: -5 }] },
+    { title: "康熙的永不加赋是————", options: [{ text: "善政，减免农民的负担，历朝历代闻所未闻，真是仁德之君", score: 5 }, { text: "华而不实，博美名罢了，当时即使不加税原本的赋税就高得离谱", score: -5 }] },
+    { title: "清朝的统治核心与宋明汉唐等传统封建王朝有明显区别", options: [{ text: "不认可，不都是皇权和士绅大地主为基础吗？", score: 5 }, { text: "认可，清朝本质就是套着封建王朝的以马治人模式，关外马队才是治理核心", score: -5 }] },
+    { title: "如果明朝能撑到1840年，它面对列强的表现能明显优于清朝", options: [{ text: "认可，明朝和清朝本来就是两套治理模式，明朝对于工业化、近代化的制约要显著小于清朝", score: -5 }, { text: "不认可，明清都是封建王朝，封建社会一个样，都必然落后于以资本主义为主的列强", score: 5 }] },
+    { title: "对于戊戌变法的态度", options: [{ text: "救亡图存的伟大尝试，打破数千年传统文化的桎梏，学习西方先进的思想制度，虽败犹荣", score: 5 }, { text: "本质和清末新政一样是清朝为维护统治的被迫尝试，是光绪等皇族为了夺权的自私目的而支持的", score: -5 }] },
+    { title: "关于清朝灭亡的原因，你更认可", options: [{ text: "清朝统治者或多或少接触到近代思想，对民间的革命反抗运动存有一定同情，打压力度较之历代王朝要轻，因此革命党的几率更大", score: 5 }, { text: "清末已经烂到根里了，除了少数既得利益者，包括革命党等绝大多数人都支持反清运动，连北洋军都反水", score: -5 }] },
+    { title: "乾隆五次蠲免钱粮是什么？", options: [{ text: "善政！为农民减轻负担，说明清朝皇帝早已放弃满洲本位，学习孔老夫子的文化", score: 5 }, { text: "文字游戏！本质是A省蠲免由B省增派，没有任何实际实惠", score: -5 }] },
+    { title: "清朝比起明朝", options: [{ text: "更开放，清代的外销瓷遍地都是，也没有真正海禁，不像明朝寸板不得下海。清末更是与各国正式建交，这压根就是个现代国家", score: 5 }, { text: "更蔽塞，清代的外交基本都是做做样子，以天朝上国的姿态故步自封，晚清被迫通商是清政府的耻辱，有什么好吹的？", score: -5 }] }
+];
+
+// ==========================
+// 修复：题库从代码加载，不依赖 localStorage
+// ==========================
+let questionBank = [...defaultQuestions];
+
+// 全局变量
+let selectedQuestions = [];
+let idx=0, score=0, sel=null;
+let scoreDetails = { positive:0, negative:0, total:0 };
+
+// 统计
+let totalTests = +localStorage.getItem('totalTests') || 0;
+let resultStats = JSON.parse(localStorage.getItem('resultStats')) || {
+    extremeQing:0, mildQing:0, neutral:0, obviousAnti:0, strongAnti:0
+};
+
+// 随机抽20题
+function randomSelectQuestions(n=20) {
+    const arr = JSON.parse(JSON.stringify(questionBank));
+    const res = [];
+    const take = Math.min(n, arr.length);
+    for(let i=0;i<take;i++){
+        const ri = Math.floor(Math.random()*arr.length);
+        res.push(arr[ri]);
+        arr.splice(ri,1);
+    }
+    return res;
+}
+
+// 页面切换
+function show(id) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+function goHome() { show('home'); updateAll(); }
+function goTest() {
+    selectedQuestions = randomSelectQuestions(20);
+    idx=0; score=0; sel=null; scoreDetails={positive:0,negative:0,total:0};
+    show('test'); load();
+}
+function goAdmin() { show('admin'); renderList(); updateQuestionCount(); }
+function restart() { goTest(); }
+
+// 答题
+function load() {
+    if(idx >= selectedQuestions.length) return showResult();
+    const q = selectedQuestions[idx];
+    document.getElementById('qtitle').textContent = `${idx+1}. ${q.title}`;
+    const o = document.getElementById('opts'); o.innerHTML='';
+    q.options.forEach(opt=>{
+        const d = document.createElement('div');
+        d.className = 'option';
+        d.textContent = opt.text;
+        d.onclick = ()=>{
+            document.querySelectorAll('.option').forEach(x=>x.classList.remove('selected'));
+            d.classList.add('selected');
+            sel = opt.score;
+            document.getElementById('nextBtn').disabled = false;
+        };
+        o.appendChild(d);
+    });
+    document.getElementById('progress').textContent = `第 ${idx+1}/${selectedQuestions.length} 题`;
+    document.getElementById('nextBtn').disabled = true;
+    document.getElementById('nextBtn').onclick = ()=>{
+        score += sel;
+        sel>0 ? scoreDetails.positive+=sel : scoreDetails.negative+=sel;
+        scoreDetails.total += Math.abs(sel);
+        idx++; load();
+    };
+}
+
+// 结果
+function showResult() {
+    show('result');
+    document.getElementById('finalScore').textContent = score+' 分';
+    let desc, key;
+    if(score>=75){ desc="极端清粉"; key="extremeQing"; }
+    else if(score>=25){ desc="温和清粉"; key="mildQing"; }
+    else if(score>=-25){ desc="中立"; key="neutral"; }
+    else if(score>=-75){ desc="明显反清"; key="obviousAnti"; }
+    else { desc="强烈反清"; key="strongAnti"; }
+    document.getElementById('resultDesc').textContent = desc;
+    renderScoreBars();
+    resultStats[key]++; totalTests++;
+    localStorage.setItem('resultStats', JSON.stringify(resultStats));
+    localStorage.setItem('totalTests', totalTests);
+    updateAll();
+}
+
+// 题目管理
+function addQuestion() {
+    const t = document.getElementById('title').value.trim();
+    const o1 = document.getElementById('opt1').value.trim();
+    const o2 = document.getElementById('opt2').value.trim();
+    if(!t||!o1||!o2) return alert('请填写完整');
+    questionBank.push({ title:t, options:[{text:o1,score:5},{text:o2,score:-5}] });
+    document.getElementById('title').value='';
+    document.getElementById('opt1').value='';
+    document.getElementById('opt2').value='';
+    renderList(); updateQuestionCount();
+    alert('添加成功！题目已永久保存！');
+}
+function delQuestion(i) {
+    if(!confirm('确定删除？')) return;
+    questionBank.splice(i,1);
+    renderList(); updateQuestionCount();
+}
+
+// 渲染
+function renderList() {
+    const l=document.getElementById('list'); l.innerHTML='';
+    questionBank.forEach((q,i)=>{
+        const d=document.createElement('div');
+        d.style='padding:10px;background:#2a2a2a;margin-bottom:8px;border-radius:8px';
+        d.innerHTML=`${i+1}. ${q.title}<br><small style="color:#aaa">${q.options[0].text} | ${q.options[1].text}</small>
+        <button onclick="delQuestion(${i})" style="float:right;background:red;color:white;border:none;padding:4px 8px;border-radius:4px">删除</button>`;
+        l.appendChild(d);
+    });
+}
+
+function updateQuestionCount() {
+    document.getElementById('totalQuestionCount').textContent=questionBank.length;
+    document.getElementById('qcount').textContent=questionBank.length;
+}
+
+// 修复：只更新数字，不覆盖结构
+function updateTestCount() {
+    const el = document.querySelector('.stat-item:first-child');
+    el.firstChild.textContent = totalTests;
+}
+
+function renderGlobalRatio() {
+    const total=Object.values(resultStats).reduce((a,b)=>a+b,0);
+    const list=[
+        {name:"极端清粉",k:"extremeQing",c:"#f43f5e"},
+        {name:"温和清粉",k:"mildQing",c:"#fb923c"},
+        {name:"中立",k:"neutral",c:"#22c55e"},
+        {name:"明显反清",k:"obviousAnti",c:"#64748b"},
+        {name:"强烈反清",k:"strongAnti",c:"#3b82f6"}
+    ];
+    const box=document.getElementById('globalRatioBars'); box.innerHTML='';
+    list.forEach(it=>{
+        const cnt=resultStats[it.k]||0;
+        const pct=total?Math.round(cnt/total*100):0;
+        const div=document.createElement('div');
+        div.innerHTML=`
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span>${it.name}</span><span>${cnt}人 · ${pct}%</span>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${it.c};"></div></div>`;
+        box.appendChild(div);
+    });
+}
+function renderScoreBars() {
+    const c=document.getElementById('scoreBars'); c.innerHTML='';
+    const pos=scoreDetails.total?Math.round(scoreDetails.positive/scoreDetails.total*100):0;
+    const neg=scoreDetails.total?Math.round(Math.abs(scoreDetails.negative)/scoreDetails.total*100):0;
+    const items=[
+        {label:"清粉倾向",p:pos,c:"#f43f5e"},
+        {label:"反清倾向",p:neg,c:"#22c55e"}
+    ];
+    items.forEach(it=>{
+        const d=document.createElement('div');
+        d.innerHTML=`<div style="display:flex;justify-content:space-between;"><span>${it.label}</span><span>${it.p}%</span></div>
+        <div class="bar"><div class="bar-fill" style="width:${it.p}%;background:${it.c};"></div></div>`;
+        c.appendChild(d);
+    });
+}
+
+function updateAll() {
+    updateQuestionCount();
+    updateTestCount();
+    renderGlobalRatio();
+}
+
+// 初始化
+updateAll();
+goHome();
+</script>
+</body>
+</html>'''
+
+    with open('qingfen.html', 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    print("已生成：qingfen.html")
+
+create_qingfen_html()
