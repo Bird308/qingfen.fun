@@ -7,33 +7,39 @@ def create_qingfen_html():
     <title>清粉检测器</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:微软雅黑;}
-        body{background:#121212;color:#fff;min-height:100vh}
-        .container{max-width:900px;margin:0 auto;padding:30px 20px}
-        .header{text-align:center;margin-bottom:30px}
-        .header h1{font-size:36px;margin-bottom:10px}
-        .subtitle{font-size:14px;color:#aaa;margin-bottom:20px}
-        .header-note{font-size:14px;color:#999;margin-bottom:20px}
-        .tag{display:inline-block;padding:4px 10px;background:#222;color:#0cf;border-radius:20px;font-size:12px;margin-bottom:20px}
-        .btn-group{display:flex;justify-content:center;gap:15px;margin-bottom:30px;flex-wrap:wrap}
-        .btn{padding:12px 24px;border-radius:8px;border:none;font-size:16px;cursor:pointer}
-        .btn-primary{background:#6366f1;color:white}
-        .btn-secondary{background:#222;color:white}
-        .stats{display:flex;justify-content:space-around;margin-bottom:30px;text-align:center;flex-wrap:wrap;gap:15px}
-        .stat-item{font-size:24px;font-weight:bold}
-        .stat-item span{display:block;font-size:12px;color:#888;font-weight:normal}
-        .page{display:none}
-        .page.active{display:block}
-        .question-box{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px}
-        .options{display:flex;flex-direction:column;gap:10px;margin-top:15px}
-        .option{background:#2a2a2a;padding:12px;border-radius:8px;cursor:pointer}
-        .option:hover{background:#333}
-        .option.selected{background:#6366f1;color:white}
-        .admin-box{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px}
-        input{width:100%;padding:10px;background:#2a2a2a;border:none;color:white;border-radius:8px;margin-bottom:10px}
-        .result-card{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px}
-        .score{font-size:28px;color:#f43f5e;font-weight:bold;margin:10px 0}
-        .bar{height:12px;background:#2a2a2a;border-radius:6px;margin:8px 0;overflow:hidden}
-        .bar-fill{height:100%;border-radius:6px}
+        body{background:#121212;color:#fff;min-height:100vh;line-height:1.6;}
+        .container{max-width:900px;margin:0 auto;padding:30px 20px;}
+        .header{text-align:center;margin-bottom:30px;}
+        .header h1{font-size:36px;margin-bottom:10px;word-break:break-all;}
+        .subtitle{font-size:14px;color:#aaa;margin-bottom:20px;line-height:1.8;}
+        .header-note{font-size:14px;color:#999;margin-bottom:20px;}
+        .tag{display:inline-block;padding:4px 10px;background:#222;color:#0cf;border-radius:20px;font-size:12px;margin-bottom:20px;}
+        .btn-group{display:flex;justify-content:center;gap:15px;margin-bottom:30px;flex-wrap:wrap;}
+        .btn{padding:12px 24px;border-radius:8px;border:none;font-size:16px;cursor:pointer;transition:background 0.2s;}
+        .btn-primary{background:#6366f1;color:white;}
+        .btn-primary:hover{background:#4f46e5;}
+        .btn-secondary{background:#222;color:white;}
+        .btn-secondary:hover{background:#333;}
+        .stats{display:flex;justify-content:space-around;margin-bottom:30px;text-align:center;flex-wrap:wrap;gap:15px;}
+        .stat-item{font-size:24px;font-weight:bold;min-width:80px;}
+        .stat-item span{display:block;font-size:12px;color:#888;font-weight:normal;}
+        .page{display:none;}
+        .page.active{display:block;animation:fadeIn 0.3s ease;}
+        @keyframes fadeIn {from{opacity:0;}to{opacity:1;}}
+        .question-box{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px;}
+        .options{display:flex;flex-direction:column;gap:10px;margin-top:15px;}
+        .option{background:#2a2a2a;padding:12px;border-radius:8px;cursor:pointer;transition:background 0.2s;word-break:break-all;}
+        .option:hover{background:#333;}
+        .option.selected{background:#6366f1;color:white;}
+        .admin-box{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px;}
+        input{width:100%;padding:10px;background:#2a2a2a;border:none;color:white;border-radius:8px;margin-bottom:10px;outline:none;}
+        input:focus{border:1px solid #6366f1;}
+        .result-card{background:#1e1e1e;padding:20px;border-radius:12px;margin-bottom:20px;}
+        .score{font-size:28px;color:#f43f5e;font-weight:bold;margin:10px 0;}
+        .bar{height:12px;background:#2a2a2a;border-radius:6px;margin:8px 0;overflow:hidden;}
+        .bar-fill{height:100%;border-radius:6px;transition:width 0.5s ease;}
+        .del-btn{float:right;background:red;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;transition:background 0.2s;}
+        .del-btn:hover{background:#d32f2f;}
     </style>
 </head>
 <body>
@@ -41,9 +47,9 @@ def create_qingfen_html():
     <div id="home" class="page active">
         <div class="header">
             <div class="tag">免费在线测试</div>
-            <h1>你是清粉吗？</h1>
+            <h1>你是清粉吗？——清粉测试器</h1>
             <p class="header-note">载湉小丑，未辨菽麦 —— 章太炎</p>
-            <p class="subtitle">从全题库随机抽取20题</p>
+            <p class="subtitle">清粉普遍具有粉圈心态，对于历史缺乏足够的唯物与第一性认识。本检测器旨在进行自我检测，如果鉴定为清粉，则说明需要调整历史观。每题清粉选项+5，每题反对清粉选项-5，错误思想-1000.选择+5不要紧，只要累计得分为负，说明没有明显问题。-5分选项都是正常的，但要留心错误思想选项，这是为了反清而不择手段的，不能借反清胡乱滋事 @刑部蜗尚书</p>
         </div>
         <div class="btn-group">
             <button class="btn btn-primary" onclick="goTest()">开始测试</button>
@@ -93,6 +99,7 @@ def create_qingfen_html():
             <input id="title" placeholder="题目内容">
             <input id="opt1" placeholder="清粉倾向选项（+5分）">
             <input id="opt2" placeholder="反清倾向选项（-5分）">
+            <input id="opt3" placeholder="错误思想选项（-100分）">
             <button class="btn btn-primary" onclick="addQuestion()">添加题目</button>
         </div>
         <div class="admin-box">
@@ -107,7 +114,7 @@ def create_qingfen_html():
 
 <script>
 // ==========================
-// 原始完整20题（已全部恢复）
+// 原始完整题库
 // ==========================
 const defaultQuestions = [
     { title: "你认为清朝是否是中国古代最强盛的封建王朝？", options: [{ text: "是，人口和领土都是旷世未有", score: 5 }, { text: "否，在横向对比维度，清朝开始落后于世界", score: -5 }] },
@@ -152,6 +159,7 @@ const defaultQuestions = [
     { title: "关于《狼图腾》等同类作品", options: [{ text: "有积极意义，让我们避免狂妄自大的天朝上国心态，即使有不同观点也属于言论自由范围", score: 5 }, { text: "有消极意义，否定传统文化的精华部分，强行用唯心主义的民族性格等结构认同感，这种恶劣影响不能以言论自由为幌子", score: -5 }] },
     { title: "你认为清朝的人口滋生和清王朝的制度、君主水平是否有关", options: [{ text: "是，清朝皇帝尊重儒家伦理，强调以民为本，各项制度都是按此方针制定执行", score: 5 }, { text: "否，主要还是生产力自身的提升，和清朝皇帝的主观意志没什么关系", score: -5 }] },
     { title: "明末渊虚之羽是不是一款好游戏？", options: [{ text: "的确，这是一款再现历史的国产游戏，是新一代魂类游戏的代表作", score: 5 }, { text: "不是，为什么偏偏不能打清军？制作组的私心和倾向太明显了", score: -5 }] },
+    { title: "网上看到某人认为《永乐大帝》中不存在蒸汽机和核武器技术", options: [{ text: "这是正常合理的观点", score: -5 }, { text: "这种思想的必然是清吹满遗", score: -1000 }] },
     { title: "法理派用以德国刑法为代表的大陆法系取代中华法系，是一项进步的举措，例如妻杀夫最轻可以判处十年，为受虐妇女以暴制暴杀夫类案件起到促进平等作用;之前中华法系都是判处死刑，即使到最晚期对此类案件也只接受在误杀同时案情存疑和旗人优待条件下与法理派就终身监禁达成妥协", options: [{ text: "正确", score: 5 }, { text: "中华法系才是维护妇女权益的公正和现代性体现，认为她们有能力承担刑责，大陆法系本质是认为女性心智不如男性，不能担全责才轻判", score: -5 }] },
     { title: "你是否认为宋明时期的理学和清朝时期的训诂学一脉相承", options: [{ text: "是的，就是因为宋明理学开始内敛蔽塞，导致清朝的学术风气更加文本主义", score: 5 }, { text: "不是，宋明理学真正的到了清朝才被彻底僵化，训诂学的爆发与清朝文字狱关系更大", score: -5 }] },
     { title: "你认为朱元璋屠湖南的传说是否可信？", options: [{ text: "可信度大/板上钉钉，因为民间朱元璋屠湖南的说法已经流传许久，还有不少故事和文化习俗佐证", score: 5 }, { text: "可信度低/不可信，当时就没有一个行政区叫湖南，而且朱元璋的主战场也不在湖南", score: -5 }] },
@@ -159,16 +167,18 @@ const defaultQuestions = [
     { title: "秘密立储比起立嫡立长具有优势，可以避免皇储间的斗争", options: [{ text: "的确，秘密立储可以规避长子昏庸的情形（如司马衷），不论是乾隆、嘉庆、道光还是咸丰都没有经历过皇位争夺与搏杀，为维护国家政治运转提供了有效保障", score: 5 }, { text: "恰恰相反，秘密立储保证了皇帝随心所欲地挑选继承人，且储君为了征得这一名额也可以相互暗害，而皇帝的决策如果适当，大臣也失去了劝谏的机会，从长期看是不如嫡长子继承制的", score: -5 }] },
     { title: "如果明朝能撑到1840年，它面对列强的表现能明显优于清朝", options: [{ text: "认可，明朝和清朝本来就是两套治理模式，明朝对于工业化、近代化的制约要显著小于清朝", score: -5 }, { text: "不认可，明清都是封建王朝，封建社会一个样，都必然落后于以资本主义为主的列强", score: 5 }] },
     { title: "对于戊戌变法的态度", options: [{ text: "救亡图存的伟大尝试，打破数千年传统文化的桎梏，学习西方先进的思想制度，虽败犹荣", score: 5 }, { text: "本质和清末新政一样是清朝为维护统治的被迫尝试，是光绪等皇族为了夺权的自私目的而支持的", score: -5 }] },
+    { title: "满族人普遍是满蒙八旗的后代，精神清朝人，存在严重的历史认知误区", options: [{ text: "对的，他们需要多补习历史，认清自己祖上的罪恶", score: -1000 }, { text: "错误，这是真正破坏民族团结的行为，强行把民族和朝代进行绑定，根本没有征求过满族同胞的意见", score: -5 }] },
     { title: "关于清朝灭亡的原因，你更认可", options: [{ text: "清朝统治者或多或少接触到近代思想，对民间的革命反抗运动存有一定同情，打压力度较之历代王朝要轻，因此革命党的几率更大", score: 5 }, { text: "清末已经烂到根里了，除了少数既得利益者，包括革命党等绝大多数人都支持反清运动，连北洋军都反水", score: -5 }] },
     { title: "乾隆五次蠲免钱粮是什么？", options: [{ text: "善政！为农民减轻负担，说明清朝皇帝早已放弃满洲本位，学习孔老夫子的文化", score: 5 }, { text: "文字游戏！本质是A省蠲免由B省增派，没有任何实际实惠", score: -5 }] },
     { title: "排满属于辛亥革命的一个主要局限性", options: [{ text: "没错，当时绝大多数满人都没有杀人越货，有不少旗人仅仅因为被怀疑就被处死，这是很不人道的", score: 5 }, { text: "错误，辛亥革命的局限性恰恰是对遗老遗少过于宽容，甚至保留《清室优待条件》，惹出后来一档子事", score: -5 }] },
+    { title: "东三省的IP和北京IP普遍都是清粉", options: [{ text: "没错，以后学习工作别去这些地方，省得被忽悠", score: -1000 }, { text: "错误，这是地域歧视，历史观和地域之间没有对应关系", score: -5 }] },
     { title: "元清对于草原的治理高于传统的汉唐宋明，说明", options: [{ text: "元朝和清朝的君主治理水平较高，眼界较为开阔，而汉人王朝受限于中原基本盘，很多超出认知的事想不到", score: 5 }, { text: "汉人和草原的社会结构、面临的防务成本、地理地形因素都有明显区别，元清对中原的治理水平也远低于宋明汉唐", score: -5 }] },
     { title: "对于中华法系的凌迟等酷刑", options: [{ text: "这是汉人的传统糟粕，满洲如管钱压根没有，连沈家本、伍廷芳在清末修律时都明确指出了", score: 5 }, { text: "把凌迟等刑罚称为酷刑本身就是一种西方语言霸权，因为古代凌迟往往针对重罪犯，西方也有针对猎巫的火刑，满洲也有野蛮的殉葬", score: -5 }] },
     { title: "清朝比起明朝", options: [{ text: "更开放，清代的外销瓷遍地都是，也没有真正海禁，不像明朝寸板不得下海。清末更是与各国正式建交，这压根就是个现代国家", score: 5 }, { text: "更蔽塞，清代的外交基本都是做做样子，以天朝上国的姿态故步自封，晚清被迫通商是清政府的耻辱，有什么好吹的？", score: -5 }] }
 ];
 
 // ==========================
-// 修复：题库从代码加载，不依赖 localStorage
+// 初始化题库
 // ==========================
 let questionBank = [...defaultQuestions];
 
@@ -177,15 +187,40 @@ let selectedQuestions = [];
 let idx=0, score=0, sel=null;
 let scoreDetails = { positive:0, negative:0, total:0 };
 
-// 统计 - 增加localStorage异常处理
+// 统计 - 完善localStorage异常处理
 let totalTests = 0;
-let resultStats = { extremeQing:0, mildQing:0, neutral:0, obviousAnti:0, strongAnti:0 };
-try {
-    totalTests = +localStorage.getItem('totalTests') || 0;
-    resultStats = JSON.parse(localStorage.getItem('resultStats')) || resultStats;
-} catch (e) {
-    console.log('localStorage不可用，使用临时数据:', e);
+let resultStats = { 
+    extremeQing:0, 
+    mildQing:0, 
+    neutral:0, 
+    obviousAnti:0, 
+    strongAnti:0,
+    wrongThought:0 // 新增错误思想统计
+};
+
+// 安全读取localStorage
+function safeGetStorage(key, defaultValue) {
+    try {
+        const value = localStorage.getItem(key);
+        return value ? (key === 'totalTests' ? Number(value) || 0 : JSON.parse(value)) : defaultValue;
+    } catch (e) {
+        console.log('localStorage读取失败，使用默认值:', e);
+        return defaultValue;
+    }
 }
+
+// 安全写入localStorage
+function safeSetStorage(key, value) {
+    try {
+        localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+    } catch (e) {
+        console.log('localStorage写入失败:', e);
+    }
+}
+
+// 初始化统计数据
+totalTests = safeGetStorage('totalTests', 0);
+resultStats = safeGetStorage('resultStats', resultStats);
 
 // 随机抽20题
 function randomSelectQuestions(n=20) {
@@ -208,158 +243,255 @@ function show(id) {
 function goHome() { show('home'); updateAll(); }
 function goTest() {
     selectedQuestions = randomSelectQuestions(20);
-    idx=0; score=0; sel=null; scoreDetails={positive:0,negative:0,total:0};
+    idx=0; score=0; sel=null; 
+    scoreDetails={positive:0,negative:0,total:0};
     show('test'); load();
 }
 function goAdmin() { show('admin'); renderList(); updateQuestionCount(); }
 function restart() { goTest(); }
 
-// 答题
+// 加载题目
 function load() {
     if(idx >= selectedQuestions.length) return showResult();
     const q = selectedQuestions[idx];
     document.getElementById('qtitle').textContent = `${idx+1}. ${q.title}`;
-    const o = document.getElementById('opts'); o.innerHTML='';
+    const optsContainer = document.getElementById('opts'); 
+    optsContainer.innerHTML='';
+    
     q.options.forEach(opt=>{
-        const d = document.createElement('div');
-        d.className = 'option';
-        d.textContent = opt.text;
-        d.onclick = ()=>{
+        const optEl = document.createElement('div');
+        optEl.className = 'option';
+        optEl.textContent = opt.text;
+        optEl.onclick = ()=>{
+            // 清除其他选项选中状态
             document.querySelectorAll('.option').forEach(x=>x.classList.remove('selected'));
-            d.classList.add('selected');
+            // 设置当前选中状态
+            optEl.classList.add('selected');
             sel = opt.score;
             document.getElementById('nextBtn').disabled = false;
         };
-        o.appendChild(d);
+        optsContainer.appendChild(optEl);
     });
+    
     document.getElementById('progress').textContent = `第 ${idx+1}/${selectedQuestions.length} 题`;
     document.getElementById('nextBtn').disabled = true;
     document.getElementById('nextBtn').onclick = ()=>{
         score += sel;
-        sel>0 ? scoreDetails.positive+=sel : scoreDetails.negative+=sel;
+        // 统计分数明细
+        if(sel > 0) {
+            scoreDetails.positive += sel;
+        } else {
+            scoreDetails.negative += sel;
+        }
         scoreDetails.total += Math.abs(sel);
-        idx++; load();
+        idx++; 
+        load();
     };
 }
 
-// 结果
+// 显示结果（修复核心逻辑）
 function showResult() {
     show('result');
-    document.getElementById('finalScore').textContent = score+' 分';
+    document.getElementById('finalScore').textContent = score + ' 分';
+    
     let desc, key;
-    if(score>=75){ desc="极端清粉"; key="extremeQing"; }
-    else if(score>=25){ desc="温和清粉"; key="mildQing"; }
-    else if(score>=-25){ desc="中立"; key="neutral"; }
-    else if(score>=-75){ desc="明显反清"; key="obviousAnti"; }
-    else { desc="强烈反清"; key="strongAnti"; }
+    // 完善分数区间判断
+    if (score <= -100) { // 错误思想（-1000分）
+        desc = "反对清朝没问题，但不能失去最基本的底线，你选择了有思想错误的选项，必须严厉批评！";
+        key = "wrongThought";
+    } else if (score >= 75) {
+        desc = "极端清粉，提醒一句，大清亡了一百多年了！";
+        key = "extremeQing";
+    } else if (score >= 25) {
+        desc = "温和清粉，对清朝有明显好感，建议先从少看辫子戏做起";
+        key = "mildQing";
+    } else if (score >= -25) {
+        desc = "中立，能够认识到清朝的明显问题，但还有进一步了解的空间";
+        key = "neutral";
+    } else if (score >= -75) {
+        desc = "明显反清，不错，你已经认识到清朝比起其他封建王朝的独特负面影响，再接再厉哦！";
+        key = "obviousAnti";
+    } else { // -75 > score > -100
+        desc = "强烈反清，非常好，很有质疑精神，对于现有内亚本位历史叙事提出根本性挑战！但也要注意不要走向历史虚无主义";
+        key = "strongAnti";
+    }
+    
     document.getElementById('resultDesc').textContent = desc;
     renderScoreBars();
-    resultStats[key]++; totalTests++;
-    // 增加异常处理
-    try {
-        localStorage.setItem('resultStats', JSON.stringify(resultStats));
-        localStorage.setItem('totalTests', totalTests);
-    } catch (e) {
-        console.log('无法保存到localStorage:', e);
-    }
+    
+    // 更新统计
+    resultStats[key]++; 
+    totalTests++;
+    
+    // 保存数据
+    safeSetStorage('resultStats', resultStats);
+    safeSetStorage('totalTests', totalTests);
+    
     updateAll();
 }
 
-// 题目管理
+// 题目管理（修复opt3逻辑）
 function addQuestion() {
-    const t = document.getElementById('title').value.trim();
-    const o1 = document.getElementById('opt1').value.trim();
-    const o2 = document.getElementById('opt2').value.trim();
-    if(!t||!o1||!o2) return alert('请填写完整');
-    questionBank.push({ title:t, options:[{text:o1,score:5},{text:o2,score:-5}] });
-    document.getElementById('title').value='';
-    document.getElementById('opt1').value='';
-    document.getElementById('opt2').value='';
-    renderList(); updateQuestionCount();
+    const title = document.getElementById('title').value.trim();
+    const opt1 = document.getElementById('opt1').value.trim(); // +5分
+    const opt2 = document.getElementById('opt2').value.trim(); // -5分
+    const opt3 = document.getElementById('opt3').value.trim(); // -100分
+    
+    // 基础校验
+    if(!title || !opt1 || !opt2) {
+        alert('请至少填写题目、清粉倾向选项、反清倾向选项！');
+        return;
+    }
+    
+    // 构建题目选项
+    const options = [
+        {text: opt1, score: 5},
+        {text: opt2, score: -5}
+    ];
+    // 如果填写了错误思想选项，添加到题库
+    if(opt3) {
+        options.push({text: opt3, score: -100});
+    }
+    
+    // 添加到题库
+    questionBank.push({ title, options });
+    
+    // 清空输入框
+    document.getElementById('title').value = '';
+    document.getElementById('opt1').value = '';
+    document.getElementById('opt2').value = '';
+    document.getElementById('opt3').value = '';
+    
+    // 更新列表
+    renderList(); 
+    updateQuestionCount();
+    
     alert('添加成功！题目已临时保存（刷新页面后丢失）！');
 }
+
 function delQuestion(i) {
-    if(!confirm('确定删除？')) return;
-    questionBank.splice(i,1);
-    renderList(); updateQuestionCount();
+    if(confirm('确定删除这道题目吗？删除后无法恢复！')) {
+        questionBank.splice(i, 1);
+        renderList(); 
+        updateQuestionCount();
+        alert('题目已删除！');
+    }
 }
 
-// 渲染
+// 渲染题库列表
 function renderList() {
-    const l=document.getElementById('list'); l.innerHTML='';
-    questionBank.forEach((q,i)=>{
-        const d=document.createElement('div');
-        d.style='padding:10px;background:#2a2a2a;margin-bottom:8px;border-radius:8px';
-        d.innerHTML=`${i+1}. ${q.title}<br><small style="color:#aaa">${q.options[0].text} | ${q.options[1].text}</small>
-        <button onclick="delQuestion(${i})" style="float:right;background:red;color:white;border:none;padding:4px 8px;border-radius:4px">删除</button>`;
-        l.appendChild(d);
+    const listEl = document.getElementById('list'); 
+    listEl.innerHTML = '';
+    
+    if(questionBank.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">暂无题目</div>';
+        return;
+    }
+    
+    questionBank.forEach((q, i)=>{
+        const itemEl = document.createElement('div');
+        itemEl.style = 'padding:10px;background:#2a2a2a;margin-bottom:8px;border-radius:8px;';
+        
+        // 拼接选项文本
+        const optTexts = q.options.map(opt => `${opt.text}（${opt.score}分）`).join(' | ');
+        
+        itemEl.innerHTML = `
+            ${i+1}. ${q.title}<br>
+            <small style="color:#aaa">${optTexts}</small>
+            <button onclick="delQuestion(${i})" class="del-btn">删除</button>
+        `;
+        listEl.appendChild(itemEl);
     });
 }
 
+// 更新题目数量
 function updateQuestionCount() {
-    document.getElementById('totalQuestionCount').textContent=questionBank.length;
-    document.getElementById('qcount').textContent=questionBank.length;
+    const count = questionBank.length;
+    document.getElementById('totalQuestionCount').textContent = count;
+    document.getElementById('qcount').textContent = count;
 }
 
-// 修复：只更新数字，不覆盖结构
+// 更新测试次数
 function updateTestCount() {
     const el = document.querySelector('.stat-item:first-child');
     el.firstChild.textContent = totalTests;
 }
 
+// 渲染全局比例
 function renderGlobalRatio() {
-    const total=Object.values(resultStats).reduce((a,b)=>a+b,0);
-    const list=[
+    const total = Object.values(resultStats).reduce((a,b)=>a+b, 0);
+    const list = [
         {name:"极端清粉",k:"extremeQing",c:"#f43f5e"},
         {name:"温和清粉",k:"mildQing",c:"#fb923c"},
         {name:"中立",k:"neutral",c:"#22c55e"},
         {name:"明显反清",k:"obviousAnti",c:"#64748b"},
-        {name:"强烈反清",k:"strongAnti",c:"#3b82f6"}
+        {name:"强烈反清",k:"strongAnti",c:"#3b82f6"},
+        {name:"错误思想",k:"wrongThought",c:"#8b5cf6"} // 新增错误思想比例
     ];
-    const box=document.getElementById('globalRatioBars'); box.innerHTML='';
+    
+    const box = document.getElementById('globalRatioBars'); 
+    box.innerHTML = '';
+    
     list.forEach(it=>{
-        const cnt=resultStats[it.k]||0;
-        const pct=total?Math.round(cnt/total*100):0;
-        const div=document.createElement('div');
-        div.innerHTML=`
+        const cnt = resultStats[it.k] || 0;
+        const pct = total ? Math.round(cnt/total*100) : 0;
+        const div = document.createElement('div');
+        div.style = 'margin-bottom:10px;';
+        div.innerHTML = `
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span>${it.name}</span><span>${cnt}人 · ${pct}%</span>
+            <span>${it.name}</span>
+            <span>${cnt}人 · ${pct}%</span>
         </div>
-        <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${it.c};"></div></div>`;
+        <div class="bar">
+            <div class="bar-fill" style="width:${pct}%;background:${it.c};"></div>
+        </div>`;
         box.appendChild(div);
     });
 }
+
+// 渲染分数分析条
 function renderScoreBars() {
-    const c=document.getElementById('scoreBars'); c.innerHTML='';
-    const pos=scoreDetails.total?Math.round(scoreDetails.positive/scoreDetails.total*100):0;
-    const neg=scoreDetails.total?Math.round(Math.abs(scoreDetails.negative)/scoreDetails.total*100):0;
-    const items=[
-        {label:"清粉倾向",p:pos,c:"#f43f5e"},
-        {label:"反清倾向",p:neg,c:"#22c55e"}
+    const container = document.getElementById('scoreBars'); 
+    container.innerHTML = '';
+    
+    const posPct = scoreDetails.total ? Math.round(scoreDetails.positive / scoreDetails.total * 100) : 0;
+    const negPct = scoreDetails.total ? Math.round(Math.abs(scoreDetails.negative) / scoreDetails.total * 100) : 0;
+    
+    const items = [
+        {label:"清粉倾向",p:posPct,c:"#f43f5e"},
+        {label:"反清倾向",p:negPct,c:"#22c55e"}
     ];
+    
     items.forEach(it=>{
-        const d=document.createElement('div');
-        d.innerHTML=`<div style="display:flex;justify-content:space-between;"><span>${it.label}</span><span>${it.p}%</span></div>
-        <div class="bar"><div class="bar-fill" style="width:${it.p}%;background:${it.c};"></div></div>`;
-        c.appendChild(d);
+        const div = document.createElement('div');
+        div.style = 'margin-bottom:10px;';
+        div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span>${it.label}</span>
+            <span>${it.p}%</span>
+        </div>
+        <div class="bar">
+            <div class="bar-fill" style="width:${it.p}%;background:${it.c};"></div>
+        </div>`;
+        container.appendChild(div);
     });
 }
 
+// 全局更新
 function updateAll() {
     updateQuestionCount();
     updateTestCount();
     renderGlobalRatio();
 }
 
-// 初始化
+// 初始化页面
 updateAll();
-goHome();
 </script>
 </body>
 </html>'''
 
     with open('qingfen.html', 'w', encoding='utf-8') as f:
         f.write(html_content)
-    print("已生成：qingfen.html")
+    print("已生成：qingfen.html（已修复所有已知问题）")
 
 create_qingfen_html()
