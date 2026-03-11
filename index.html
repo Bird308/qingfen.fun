@@ -245,7 +245,7 @@ def create_qingfen_website():
         <div class="hero">
             <div class="badge">免费在线测试 · 无需注册</div>
             <h1>你是<span>清粉</span>吗？</h1>
-            <p>清粉普遍具有粉圈心态，对于历史缺乏足够的唯物与第一性认识。本检测器旨在进行自我检测，如果鉴定为清粉，则说明需要调整历史观。每题清粉选项+5，反（正）清（常）选项-5，错误思想-100</p>
+            <p>清粉普遍具有粉圈心态，对于历史缺乏足够的唯物与第一性认识。本检测器旨在进行自我检测，如果鉴定为清粉，则说明需要调整历史观。每题清粉选项+5，反（正）清（常）选项-5，错误思想-1000</p>
             <div class="btns">
                 <button class="btn btn-primary" onclick="startTest()">开始测试 →</button>
                 <button class="btn btn-secondary">PRO 深度鉴定</button>
@@ -811,7 +811,7 @@ function addQuestion() {
     ];
     // 如果填写了错误思想选项，添加到题库
     if(opt3) {
-        options.push({text: opt3, score: -100});
+        options.push({text: opt3, score: -1000});
     }
     
     // 添加到题库
