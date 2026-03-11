@@ -747,14 +747,14 @@ function loadQuestion() {
     };
 }
 
-// 显示结果（修复核心逻辑）
+// 显示结果（修改分数区间判断逻辑）
 function showResult() {
     showPage('result');
     document.getElementById('finalScore').textContent = score + ' 分';
     
     let desc, key;
-    // 完善分数区间判断
-    if (score <= -100) { // 错误思想（-1000分）
+    // 修改：错误思想仅针对 score < -100（不含等于）
+    if (score < -100) { // 仅小于-100才判定为错误思想
         desc = "反对清朝没问题，但不能失去最基本的底线，你选择了有思想错误的选项，必须严厉批评！";
         key = "wrongThought";
     } else if (score >= 75) {
@@ -769,7 +769,7 @@ function showResult() {
     } else if (score >= -75) {
         desc = "明显反清，不错，你已经认识到清朝比起其他封建王朝的独特负面影响，再接再厉哦！";
         key = "obviousAnti";
-    } else { // -75 > score >= -100
+    } else { // -75 > score >= -100（包含-100）
         desc = "强烈反清，非常好，很有质疑精神，对于现有内亚本位历史叙事提出根本性挑战！但也要注意不要走向历史虚无主义";
         key = "strongAnti";
     }
