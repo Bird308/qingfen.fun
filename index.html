@@ -370,7 +370,8 @@ def create_qingfen_website():
             <input id="submitTitle" placeholder="题目内容（例如：你如何看待乾隆的十全武功？）">
             <input id="submitOpt1" placeholder="清粉倾向选项（+5分）">
             <input id="submitOpt2" placeholder="反清倾向选项（-5分）">
-            <input id="submitOpt3" placeholder="错误思想选项（-100分，可选）">
+            <input id="submitOpt3" placeholder="中立选项（0分）">
+            <input id="submitOpt4" placeholder="错误思想选项（-1000分，可选）">
             <textarea id="submitDesc" placeholder="补充说明（可选）" rows="3"></textarea>
             <button class="btn btn-primary" onclick="submitQuestion()">提交题目</button>
         </div>
@@ -383,7 +384,8 @@ def create_qingfen_website():
             <input id="title" placeholder="题目内容">
             <input id="opt1" placeholder="清粉倾向选项（+5分）">
             <input id="opt2" placeholder="反清倾向选项（-5分）">
-            <input id="opt3" placeholder="错误思想选项（-100分）">
+            <input id="opt3" placeholder="中立选项（0分）">
+            <input id="opt4" placeholder="错误思想选项（-100分）">
             <button class="btn btn-primary" onclick="addQuestion()">添加题目</button>
         </div>
         <div class="card admin-box">
@@ -592,29 +594,29 @@ const defaultQuestions = [
     { title: "清军入关时的行径，例如扬州十日、嘉定三屠等等", options: [{ text: "这是历史上常见的现象，不足为奇，例如白起坑杀四十万降卒，明朝对各个少数民族也进行了剃发易服，清军入关只是一次复刻性的报复，虽然不对，但并不特殊", score: 5 }, { text: "这就是赤裸裸的暴行，虽然古代战争也有很惨烈的，但杀害的一般是交战人员和战俘，对平民大规模屠戮是非常少的，清军入关的行为旷世罕有，就应该批判", score: -5 }] },
     { title: "明朝皇帝普遍怠惰，清朝皇帝普遍勤政", options: [{ text: "认可，明朝皇帝奇葩多，清朝皇帝中规中矩", score: 5 }, { text: "不认可，明朝内阁在起作用，不能以是否上朝判断皇帝是否尽职尽责", score: -5 }] },
     { title: "乾隆的十全武功充分体现出其超越明朝历代皇帝的军事水准？", options: [{ text: "是，乾隆水平吊打秦皇汉武", score: 5 }, { text: "否，乾隆打的胜仗都是捏软柿子", score: -5 }] },
-    { title: "乾隆一生作诗四万多首", options: [{ text: "这是他汉化的表现，对丰富文化作出了相当的贡献", score: 5 }, { text: "这只是他附庸风雅，他乱涂乱画乱盖破坏的文物更多", score: -5 }] },
+    { title: "乾隆一生作诗四万多首", options: [{ text: "这是他汉化的表现，对丰富文化作出了相当的贡献", score: 5 }, { text: "乾隆确实有一定的文化造诣，但天赋也就那样，无誉无毁", score: 0 }, { text: "这只是他附庸风雅，他乱涂乱画乱盖破坏的文物更多", score: -5 }] },
     { title: "乾隆编纂《四库全书》是一场对文化的浩劫，危害性远大于所谓的'焚书坑儒'", options: [{ text: "认可，有大量文化典籍本销毁或篡改", score: -5 }, { text: "不认可，这是文化事业上的盛举，比《永乐大典》珍贵多了", score: 5 }] },
     { title: "你是否认为明朝的识字率要高于清朝？", options: [{ text: "认可，明朝民间讲学风气浓厚，小说井喷", score: -5 }, { text: "不认可，文字狱就是明朝的特色，文官集团动不动挨板子", score: 5 }] },
     { title: "清朝对宗室的治理态度比明朝更科学？", options: [{ text: "是的", score: 5 }, { text: "不是", score: -5 }] },
     { title: "清朝是不是和平退位？", options: [{ text: "是的，隆裕太后亲自认可民国，这在传统汉人王朝是极其少见的", score: 5 }, { text: "不是，当时清朝是知道再不退位就小命难保才被迫退位的，而且后来还有张勋复辟和伪满洲国等破事", score: -5 }] },
-    { title: "有人说清朝的赈灾次数远高于唐朝，并拿出现存第一手工作档案进行证明", options: [{ text: "相信他，毕竟都有史料了", score: 5 }, { text: "我信你个鬼，唐朝现存第一手工作档案因为时间久远，原本数量就少！", score: -5 }] },
+    { title: "有人说清朝的赈灾次数远高于唐朝，并拿出现存第一手工作档案进行证明", options: [{ text: "相信他，毕竟都有史料了", score: 5 }, { text: "不确定，拿来我看看再说", score: 0 }, { text: "我信你个鬼，唐朝现存第一手工作档案因为时间久远，原本数量就少！", score: -5 }] },
     { title: "文艺复兴时期，明朝还在搞朝贡体系，说明此时中国已经开始落后于世界", options: [{ text: "是的，这是欧洲近代启蒙的起点，同时期明人还在读四书五经，因此近代落后的责任主要在明朝，清朝只是没能力挽狂澜罢了", score: 5 }, { text: "不是，文艺复兴本质只是人类知识枢纽的地理转移，并不是所谓的思想启蒙，当时的明朝并未开始落后于世界", score: -5 }] },
-    { title: "朱元璋的鞋拔子脸到底是怎么来的？", options: [{ text: "本来就长那样嘛，又不是现代网友画的", score: 5 }, { text: "明显是后人画的，清朝人有重大嫌疑", score: -5 }] },
+    { title: "朱元璋的鞋拔子脸到底是怎么来的？", options: [{ text: "本来就长那样嘛，又不是现代网友画的", score: 5 }, { text: "朱元璋长相正常，是他儿子朱棣为了继位合法性而创造出的异相", score: 0 }, { text: "明显是后人画的，清朝人有重大嫌疑，古代异相可没见过是搞丑相的", score: -5 }] },
     { title: "你是否认为光荣革命是一场资产阶级领导的进步革命？", options: [{ text: "是的，这是英国走向宪政的关键一步，可惜同时期的康熙大帝被君主专制的惯性拖累了", score: 5 }, { text: "不是，本质上是天主教和新教的冲突，由不同的群体展现出来而已", score: -5 }] },
     { title: "你如何看待清朝的闭关锁国政策？", options: [{ text: "是必要的自我保护，避免西方势力渗透", score: 5 }, { text: "是导致中国落后的重要原因，错失发展机遇", score: -5 }] },
-    { title: "清朝对宗室的治理态度比明朝更科学？", options: [{ text: "是的", score: 5 }, { text: "不是", score: -5 }] },   
+    { title: "清朝对宗室的治理态度比明朝更科学？", options: [{ text: "是的，明朝就是养猪，明末宗室将近100人", score: 5 }, { text: "各有优劣，一个分封到地方，一个在京城", score: 0 }, { text: "不是，清朝的宗室压根没有地方官的牵制，还享有不少给予满蒙贵族身份的民族特权，明朝藩王素质虽然良莠不齐，但地方官是可以一定约束的", score: -5 }] },   
     { title: "内藤湖南的“唐宋变革论”认为中国进入宋朝后就开始封闭保守，需要草原文明或异族输血才能延续", options: [{ text: "这正是民族融合的重要性，元朝和清朝对中国宋朝以后的文明延续有明显贡献", score: 5 }, { text: "唐宋确实变化大，但文明价值本身没有变得闭塞僵化，儒家仍然可以维系社会正常运转", score: -5 }] },   
     { title: "关于汉服复兴运动的本质是？", options: [{ text: "cos汉人，搞封建文化回魂，是大汉族主义者展示血统的作秀", score: 5 }, { text: "是对我们博大精深的传统文化的一种自豪与继承，认可历史是一脉相承的，而非原旨复古", score: -5 }] },
     { title: "元朝、清朝版图都比明朝大，说明草原文明对大一统的管理上限更高", options: [{ text: "是的，汉人传统文化较为封闭，只喜欢看自己的一亩三分地，缺乏创新与开拓精神", score: 5 }, { text: "错了，这个结论本身就是基于双标得出的，况且不同文明的治理重心本来就不同，怎么不比谁对内地的效率更高？", score: -5 }] },
     { title: "张勋复辟和袁世凯称帝，哪个对后世的负面影响更大？", options: [{ text: "袁世凯称帝，那可是儒家文化落后的再次体现", score: 5 }, { text: "张勋复辟，这直接鼓动了大量遗老遗少，后来的伪满与这种风气也有密切关系", score: -5 }] },
-    { title: "你对晚清的普遍印象", options: [{ text: "具有进取精神，洋务运动、戊戌变法、清末新政展现出对西方先进科技思想的追求，打破了传统王朝的天朝上国心态", score: 5 }, { text: "丧权辱国，各种条约数不胜数，连日本这种刚刚工业化起步的农业国都打不过，识字率不到1%，简直凄凄惨惨戚戚", score: -5 }] },
+    { title: "你对晚清的普遍印象", options: [{ text: "具有进取精神，洋务运动、戊戌变法、清末新政展现出对西方先进科技思想的追求，打破了传统王朝的天朝上国心态", score: 5 }, { text: "一方面有各种丧权辱国的条约，另一方面也有不少亮点，比如学习西方，功过参半", score: 0 }, { text: "丧权辱国，各种条约数不胜数，连日本这种刚刚工业化起步的农业国都打不过，识字率不到1%，简直凄凄惨惨戚戚，所谓的现代化都是为了维系他们的特权才搞的", score: -5 }] },
     { title: "你是否认为二月河三部曲《康熙王朝》《雍正王朝》《乾隆王朝》代表了国产剧的巅峰？", options: [{ text: "是的，完美还原了中国古代最后一个盛世的辉煌，有助于年轻人了解历史", score: 5 }, { text: "非也，这种作品存在大量美化清朝的倾向，并非描述事实，可能会对观众形成误导", score: -5 }] },
     { title: "清朝对台湾的综合治理水平远高于明朝", options: [{ text: "认可，施琅大将军收复台湾，功德无量，《马关条约》不赖清帝，赖儒家文化的僵化", score: 5 }, { text: "不认可，台湾岛上常常起义，反而是明朝治理更好，维护岛民权益", score: -5 }] },
     { title: "关于《扬州十日记》", options: [{ text: "记载的死亡人数过分夸大，而且书籍本身就是革命党人从日本带回来的，非常不客观", score: 5 }, { text: "记载死亡人数没有问题，而且清中期就有人偷偷刊刻，根本不是从日本带回来的", score: -5 }] },
     { title: "你对'中兴名臣'曾国藩、李鸿章、胡林翼等态度", options: [{ text: "平定太平天国，戡乱有功，推行洋务，为晚清续命50年，功大于过", score: 5 }, { text: "刽子手，残酷镇压农民起义，心理扭曲，这也叫名臣？", score: -5 }] },
-    { title: "康熙的永不加赋是————", options: [{ text: "善政，减免农民的负担，历朝历代闻所未闻，真是仁德之君", score: 5 }, { text: "华而不实，博美名罢了，当时即使不加税原本的赋税就高得离谱", score: -5 }] },
+    { title: "康熙的永不加赋是————", options: [{ text: "善政，减免农民的负担，历朝历代闻所未闻，真是仁德之君", score: 5 },{ text: "确实有想法，但下面人执行坏了，搞出八成火耗，但康熙毕竟没有民建经历，不知者无罪", score: 0 }, { text: "华而不实，博美名罢了，当时即使不加税原本的赋税就高得离谱", score: -5 }] },
     { title: "关于多尔衮是民族英雄的说法", options: [{ text: "正确的，每个民族都可以有自己的民族英雄，不能只允许汉人有", score: 5 }, { text: "错误的，民族英雄固然可以是多民族的，但不能强行凑数，多尔衮暴虐嗜杀，而岳飞这样的民族英雄可没对金人滥杀无辜", score: -5 }] },
-    { title: "你是否认为，清朝的内阁制度比明朝的内阁制度对于国家治理效率更高，更有助于实现儒家推崇的轻徭薄赋、以民为本的政策？", options: [{ text: "是的", score: 5 }, { text: "不是", score: -5 }] },
+    { title: "你是否认为，清朝的内阁制度比明朝的内阁制度对于国家治理效率更高，更有助于实现儒家推崇的轻徭薄赋、以民为本的政策？", options: [{ text: "是的", score: 5 }, { text: "差不多吧", score: 0 }, { text: "不是", score: -5 }] },
     { title: "工业革命需要思想解放，主权在民，君主专制是不可能产生工业革命，所以不论明朝还是清朝都不可能出现工业革命", options: [{ text: "正确，这是小农经济的局限性，清朝对此不负特殊责任", score: 5 }, { text: "错，工业革命与思想和制度没有必然关系，沙俄直到20世纪初期也是君主专制，怎么就没有出现工业革命，清朝必须为落后于时代负责", score: -5 }] },
     { title: "《少年中国说》是梁启超为了民族崛起而创作的，居功至伟", options: [{ text: "的确，这是他为了救亡图存大公无私的体现", score: 5 }, { text: "恐怕没这么简单，这篇创作于1901年，梁启超极有可能存有私心，他想要强大的国要以维护光绪等满洲君主为基础", score: -5 }] },
     { title: "关于满蒙传统收继婚，你更认可", options: [{ text: "这是他们的习俗，就像中国古代也有周礼规定婚姻习俗，不能因为个人身份的不同而认为他们的风俗落后", score: 5 }, { text: "各民族间都有优秀的风俗，但也都有糟粕，收继婚就是满蒙风俗中的糟粕，不符合社会生产力发展趋势", score: -5 }] },
@@ -635,7 +637,7 @@ const defaultQuestions = [
     { title: "关于《狼图腾》等同类作品", options: [{ text: "有积极意义，让我们避免狂妄自大的天朝上国心态，即使有不同观点也属于言论自由范围", score: 5 }, { text: "有消极意义，否定传统文化的精华部分，强行用唯心主义的民族性格等解构认同感，这种恶劣影响不能以言论自由为幌子", score: -5 }] },
     { title: "你认为清朝的人口滋生和清王朝的制度、君主水平是否有关", options: [{ text: "是，清朝皇帝尊重儒家伦理，强调以民为本，各项制度都是按此方针制定执行", score: 5 }, { text: "否，主要还是生产力自身的提升，和清朝皇帝的主观意志没什么关系", score: -5 }] },
     { title: "明末渊虚之羽是不是一款好游戏？", options: [{ text: "的确，这是一款再现历史的国产游戏，是新一代魂类游戏的代表作", score: 5 }, { text: "不是，为什么偏偏不能打清军？制作组的私心和倾向太明显了", score: -5 }] },
-    { title: "清末修律时某受虐旗人妇女以暴制暴误杀丈夫，证据存疑且有司法优待，中华法系汉臣主张终身监禁（至少15年不得假释）或绞监候，修律派（主张借用德国刑法）主张可判十年。", options: [{ text: "德国法律开明先进，尊重妇女权益，传统儒家文化具有系统性性别歧视", score: 5 }, { text: "中华法系才是公正和现代性的象征，认为女性有能力承担同等刑责，大陆法系本质是认为女性担责能力不如男性才轻判", score: -5 }] },
+    { title: "清末修律时某受虐旗人妇女以暴制暴误杀丈夫，证据存疑且有司法优待，中华法系汉臣主张终身监禁（至少15年不得假释）或绞监候乃至绞立决，修律派（主张借用德国刑法）主张可判十年。", options: [{ text: "德国法律开明先进，尊重妇女权益，传统儒家文化具有系统性性别歧视", score: 5 }, { text: "这确实是由进步意义的，但中华法系毕竟形成于2000年前，不能以现代人衡量古代标准，承认德国传统比华夏传统优秀并非妄自菲薄", score: 0 }, { text: "中华法系才是公正和现代性的象征，认为女性有能力承担同等刑责，大陆法系本质是认为女性担责能力不如男性才轻判，而且性别平等维护的是合法权益，不是犯罪后的权益", score: -5 }] },
     { title: "你是否认为清朝的税收体系比明朝的更科学？", options: [{ text: "是", score: 5 }, { text: "否", score: -5 }] },
     { title: "康熙爱好科学却推行不下去，怎么看待？", options: [{ text: "儒教官员因为秦制和孔老二的思想，对外来事物如洪水猛兽，拒绝推行", score: 5 }, { text: "康熙自己就没想推行，怕人用了危机自己的统治", score: -5 }] },
     { title: "你是否认为宋明时期的理学和清朝时期的训诂学一脉相承", options: [{ text: "是的，就是因为宋明理学开始内敛蔽塞，导致清朝的学术风气更加文本主义", score: 5 }, { text: "不是，宋明理学真正的到了清朝才被彻底僵化，训诂学的爆发与清朝文字狱关系更大", score: -5 }] },
@@ -812,7 +814,9 @@ function addQuestion() {
     const title = document.getElementById('title').value.trim();
     const opt1 = document.getElementById('opt1').value.trim(); // +5分
     const opt2 = document.getElementById('opt2').value.trim(); // -5分
-    const opt3 = document.getElementById('opt3').value.trim(); // -100分
+    const opt3 = document.getElementById('opt3').value.trim(); // 0分
+    const opt4 = document.getElementById('opt4').value.trim(); // -1000分
+
     
     // 基础校验
     if(!title || !opt1 || !opt2) {
@@ -823,11 +827,12 @@ function addQuestion() {
     // 构建题目选项
     const options = [
         {text: opt1, score: 5},
-        {text: opt2, score: -5}
+        {text: opt2, score: -5},
+        {text: opt3, score: 0}
     ];
     // 如果填写了错误思想选项，添加到题库
-    if(opt3) {
-        options.push({text: opt3, score: -1000});
+    if(opt4) {
+        options.push({text: opt4, score: -1000});
     }
     
     // 添加到题库
@@ -838,6 +843,7 @@ function addQuestion() {
     document.getElementById('opt1').value = '';
     document.getElementById('opt2').value = '';
     document.getElementById('opt3').value = '';
+    document.getElementById('opt4').value = '';
     
     // 更新列表
     renderQuestionList(); 
@@ -888,6 +894,7 @@ function submitQuestion() {
     const opt1 = document.getElementById('submitOpt1').value.trim();
     const opt2 = document.getElementById('submitOpt2').value.trim();
     const opt3 = document.getElementById('submitOpt3').value.trim();
+    const opt4 = document.getElementById('submitOpt4').value.trim();
     
     if(!title || !opt1 || !opt2) {
         alert('请至少填写题目、清粉倾向选项、反清倾向选项！');
@@ -900,6 +907,7 @@ function submitQuestion() {
     document.getElementById('submitOpt1').value = '';
     document.getElementById('submitOpt2').value = '';
     document.getElementById('submitOpt3').value = '';
+    document.getElementById('submitOpt4').value = '';
 }
 
 // ==========================
