@@ -2,70 +2,72 @@ from flask import Flask, request, jsonify
 import json
 import os
 from datetime import datetime
-import threading  # 新增：加锁避免并发写乱
 
 app = Flask(__name__)
-# 数据存储文件（所有访问者共用这个文件）
+# 数据存储文件
 DATA_FILE = "global_stats.json"
-# 创建文件锁
-file_lock = threading.Lock()
 
 # 初始化数据文件
 def init_data():
-    with file_lock:  # 加锁保证初始化安全
-        if not os.path.exists(DATA_FILE):
-            initial_data = {
-                "totalTests": 0,
-                "resultStats": {
-                    "extremeQing": 0,
-                    "mildQing": 0,
-                    "neutral": 0,
-                    "obviousAnti": 0,
-                    "strongAnti": 0,
-                    "wrongThought": 0
-                },
-                "lastUpdate": datetime.now().isoformat()
-            }
-            with open(DATA_FILE, "w", encoding="utf-8") as f:
-                json.dump(initial_data, f, ensure_ascii=False, indent=2)
+    if not os.path.exists(DATA_FILE):
+        initial_data = {
+            "totalTests": 0,
+            "resultStats": {
+                "extremeQing": 0,
+                "mildQing": 0,
+                "neutral": 0,
+                "obviousAnti": 0,
+                "strongAnti": 0,
+                "wrongThought": 0
+            },
+            "lastUpdate": datetime.now().isoformat()
+        }
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(initial_data, f, ensure_ascii=False, indent=2)
 
-# 获取全网统一数据（所有人读的都是这个文件）
+# 获取全网数据
 @app.route("/api/get-global-stats", methods=["GET"])
 def get_global_stats():
     init_data()
-    with file_lock:
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
     return jsonify(data)
 
-# 提交结果到统一文件（所有人的提交都累加在这里）
+# 提交用户测试结果
 @app.route("/api/submit-result", methods=["POST"])
 def submit_result():
     init_data()
+    # 获取前端提交的结果（如：{"key": "extremeQing"}）
     result = request.json.get("key")
     if not result or result not in ["extremeQing", "mildQing", "neutral", "obviousAnti", "strongAnti", "wrongThought"]:
         return jsonify({"code": 400, "msg": "无效的结果类型"}), 400
     
-    with file_lock:  # 加锁防止多人同时写
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        
-        data["totalTests"] += 1
-        data["resultStats"][result] += 1
-        data["lastUpdate"] = datetime.now().isoformat()
-        
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+    # 读取并更新全网数据
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    
+    data["totalTests"] += 1
+    data["resultStats"][result] += 1
+    data["lastUpdate"] = datetime.now().isoformat()
+    
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
     
     return jsonify({"code": 200, "msg": "提交成功", "data": data})
 
-# 跨域配置（必须加，否则前端调不了）
+# 解决跨域问题
 @app.after_request
 def after_request(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+
 
 def create_qingfen_website():
     html_content = '''<!DOCTYPE html>
@@ -427,7 +429,7 @@ def create_qingfen_website():
             </div>
             <div class="qa-item">
                 <strong>Q：测试结果会保存吗？</strong>
-                <p>A：仅在服务器保存全网统计数据，不会上传任何个人信息。</p>
+                <p>A：仅在本地浏览器保存统计数据，不会上传任何个人信息。</p>
             </div>
         </div>
     </div>
@@ -454,7 +456,7 @@ def create_qingfen_website():
             <input id="opt1" placeholder="清粉倾向选项（+5分）">
             <input id="opt2" placeholder="反清倾向选项（-5分）">
             <input id="opt3" placeholder="中立选项（0分）">
-            <input id="opt4" placeholder="错误思想选项（-1000分）">
+            <input id="opt4" placeholder="错误思想选项（-100分）">
             <button class="btn btn-primary" onclick="addQuestion()">添加题目</button>
         </div>
         <div class="card admin-box">
@@ -488,11 +490,6 @@ def create_qingfen_website():
 </div>
 
 <script>
-// ==========================
-// 配置项：替换成你的ngrok公网地址
-// ==========================
-const API_BASE_URL = "http://localhost:5000"; // 本地测试用，上线替换成ngrok地址
-
 // ==========================
 // 1. 页面切换核心功能
 // ==========================
@@ -746,7 +743,7 @@ const defaultQuestions = [
     { title: "你是否认为宋明时期的理学和清朝时期的训诂学一脉相承", options: [{ text: "是的，就是因为宋明理学开始内敛蔽塞，导致清朝的学术风气更加文本主义", score: 5 }, { text: "不是，宋明理学真正的到了清朝才被彻底僵化，训诂学的爆发与清朝文字狱关系更大", score: -5 }] },
     { title: "你认为朱元璋屠湖南的传说是否可信？", options: [{ text: "可信度大/板上钉钉，因为民间朱元璋屠湖南的说法已经流传许久，还有不少故事和文化习俗佐证", score: 5 }, { text: "可信度低/不可信，当时就没有一个行政区叫湖南，而且朱元璋的主战场也不在湖南", score: -5 }] },
     { title: "清朝的统治核心与宋明汉唐等传统封建王朝有明显区别", options: [{ text: "不认可，不都是皇权和士绅大地主为基础吗？", score: 5 }, { text: "认可，清朝本质就是套着封建王朝的以马治人模式，关外马队才是治理核心", score: -5 }] },
-    { title: "秘密立储比起立嫡立长具有优势，可以避免皇储间的斗争", options: [{ text: "的确，秘密立储可以规避长子昏庸的情形（如司马衷），不论是乾隆、嘉庆、道光还是咸丰都没有经历过权力斗争", score: 5 }, { text: "不是，这导致大臣无法知晓皇帝候选人的身份，无法进行劝谏，皇子之间还是可以为了获得这个资格而各种明争暗斗", score: -5 }] },
+    { title: "秘密立储比起立嫡立长具有优势，可以避免皇储间的斗争", options: [{ text: "的确，秘密立储可以规避长子昏庸的情形（如司马衷），不论是乾隆、嘉庆、道光还是咸丰都没有经历过皇位争夺与搏杀，为维护国家政治运转提供了有效保障", score: 5 }, { text: "恰恰相反，秘密立储保证了皇帝随心所欲地挑选继承人，且储君为了征得这一名额也可以相互暗害，而皇帝的决策如果失当，大臣也失去了劝谏的机会，从长期看是不如嫡长子继承制的", score: -5 }] },
     { title: "大家认为‘满城’是个怎样的制度", options: [{ text: "有效促进民族融合，在战时有优秀的防御作用", score: 5 }, { text: "赤裸裸的种族隔离，为了防止被主体定居民族同化或者反抗，把满人全部限制在工事之内居住。如果是为了抵御外侮，直接按照内外城建设不久行了吗？待到秋来双十日，‘满城’尽带黄金甲", score: -5 }] },
     { title: "您觉得清军对少数民族的屠杀，责任在谁？", options: [{ text: "虽然清军入关前就干过不少类似的，最高决策者大多是旗人，皇帝也有拍板权，但责任主要在征服汉地后所占然的秦制儒家文化", score: 5 }, { text: "这是内亚蛮族产训一体、以战养战的一贯作风", score: -5 }] },
     { title: "如果明朝能撑到1840年，它面对列强的表现能明显优于清朝", options: [{ text: "认可，明朝和清朝本来就是两套治理模式，明朝对于工业化、近代化的制约要显著小于清朝", score: -5 }, { text: "不认可，明清都是封建王朝，封建社会一个样，都必然落后于以资本主义为主的列强", score: 5 }] },
@@ -869,7 +866,6 @@ function loadQuestion() {
 }
 
 // 显示结果（修改分数区间判断逻辑）
-// 显示结果（修改分数区间判断逻辑）
 function showResult() {
     showPage('result');
     document.getElementById('finalScore').textContent = score + ' 分';
@@ -899,43 +895,47 @@ function showResult() {
     document.getElementById('resultDesc').textContent = desc;
     renderScoreBars();
     
-    // 提交结果到服务器
-    submitResultToServer(key);
-}
-
-// 1. 改submitResultToServer函数（删掉本地存储，改接口地址）
 async function submitResultToServer(key) {
     try {
-        // 把下面的地址换成你的ngrok公网地址
-        const res = await fetch("https://superpopulated-superloyal-sariah.ngrok-free.dev/api/submit-result", {
+        const res = await fetch("http://localhost:5000/api/submit-result", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({key: key})
         });
         const data = await res.json();
         if (data.code === 200) {
+            // 更新页面显示为全网数据
             totalTests = data.data.totalTests;
             resultStats = data.data.resultStats;
             updateAll();
         }
     } catch (e) {
-        console.log("提交失败:", e);
-        // 删掉这里所有的localStorage相关代码（比如resultStats[key]++、safeSetStorage等）
+        console.log("提交全网数据失败，使用本地数据:", e);
+        // 降级：仍使用本地数据
+        resultStats[key]++; 
+        totalTests++;
+        safeSetStorage('resultStats', resultStats);
+        safeSetStorage('totalTests', totalTests);
     }
 }
 
-// 2. 改loadGlobalStats函数（删掉本地存储，改接口地址）
+// 在showResult函数中调用
+submitResultToServer(key);
+    
+// 原window.onload中的updateAll()替换为：
 async function loadGlobalStats() {
     try {
-        // 同样换成你的ngrok公网地址
-        const res = await fetch("https://superpopulated-superloyal-sariah.ngrok-free.dev/api/get-global-stats");
+        const res = await fetch("http://localhost:5000/api/get-global-stats");
         const data = await res.json();
         totalTests = data.totalTests;
         resultStats = data.resultStats;
-        updateAll();
+        updateAll(); // 渲染全网数据
     } catch (e) {
-        console.log("加载失败:", e);
-        // 删掉这里所有的localStorage相关代码（比如safeGetStorage）
+        console.log("获取全网数据失败，使用本地数据:", e);
+        // 降级：使用本地存储
+        totalTests = safeGetStorage('totalTests', 0);
+        resultStats = safeGetStorage('resultStats', resultStats);
+        updateAll();
     }
 }
 
