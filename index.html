@@ -2,69 +2,70 @@ from flask import Flask, request, jsonify
 import json
 import os
 from datetime import datetime
+import threading  # 新增：加锁避免并发写乱
 
 app = Flask(__name__)
-# 数据存储文件
+# 数据存储文件（所有访问者共用这个文件）
 DATA_FILE = "global_stats.json"
+# 创建文件锁
+file_lock = threading.Lock()
 
 # 初始化数据文件
 def init_data():
-    if not os.path.exists(DATA_FILE):
-        initial_data = {
-            "totalTests": 0,
-            "resultStats": {
-                "extremeQing": 0,
-                "mildQing": 0,
-                "neutral": 0,
-                "obviousAnti": 0,
-                "strongAnti": 0,
-                "wrongThought": 0
-            },
-            "lastUpdate": datetime.now().isoformat()
-        }
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(initial_data, f, ensure_ascii=False, indent=2)
+    with file_lock:  # 加锁保证初始化安全
+        if not os.path.exists(DATA_FILE):
+            initial_data = {
+                "totalTests": 0,
+                "resultStats": {
+                    "extremeQing": 0,
+                    "mildQing": 0,
+                    "neutral": 0,
+                    "obviousAnti": 0,
+                    "strongAnti": 0,
+                    "wrongThought": 0
+                },
+                "lastUpdate": datetime.now().isoformat()
+            }
+            with open(DATA_FILE, "w", encoding="utf-8") as f:
+                json.dump(initial_data, f, ensure_ascii=False, indent=2)
 
-# 获取全网数据
+# 获取全网统一数据（所有人读的都是这个文件）
 @app.route("/api/get-global-stats", methods=["GET"])
 def get_global_stats():
     init_data()
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    with file_lock:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
     return jsonify(data)
 
-# 提交用户测试结果
+# 提交结果到统一文件（所有人的提交都累加在这里）
 @app.route("/api/submit-result", methods=["POST"])
 def submit_result():
     init_data()
-    # 获取前端提交的结果（如：{"key": "extremeQing"}）
     result = request.json.get("key")
     if not result or result not in ["extremeQing", "mildQing", "neutral", "obviousAnti", "strongAnti", "wrongThought"]:
         return jsonify({"code": 400, "msg": "无效的结果类型"}), 400
     
-    # 读取并更新全网数据
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    
-    data["totalTests"] += 1
-    data["resultStats"][result] += 1
-    data["lastUpdate"] = datetime.now().isoformat()
-    
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    with file_lock:  # 加锁防止多人同时写
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        data["totalTests"] += 1
+        data["resultStats"][result] += 1
+        data["lastUpdate"] = datetime.now().isoformat()
+        
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
     
     return jsonify({"code": 200, "msg": "提交成功", "data": data})
 
-# 解决跨域问题
+# 跨域配置（必须加，否则前端调不了）
 @app.after_request
 def after_request(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
 
 def create_qingfen_website():
     html_content = '''<!DOCTYPE html>
@@ -426,7 +427,7 @@ def create_qingfen_website():
             </div>
             <div class="qa-item">
                 <strong>Q：测试结果会保存吗？</strong>
-                <p>A：仅在本地浏览器保存统计数据，不会上传任何个人信息。</p>
+                <p>A：仅在服务器保存全网统计数据，不会上传任何个人信息。</p>
             </div>
         </div>
     </div>
@@ -453,7 +454,7 @@ def create_qingfen_website():
             <input id="opt1" placeholder="清粉倾向选项（+5分）">
             <input id="opt2" placeholder="反清倾向选项（-5分）">
             <input id="opt3" placeholder="中立选项（0分）">
-            <input id="opt4" placeholder="错误思想选项（-100分）">
+            <input id="opt4" placeholder="错误思想选项（-1000分）">
             <button class="btn btn-primary" onclick="addQuestion()">添加题目</button>
         </div>
         <div class="card admin-box">
@@ -487,6 +488,11 @@ def create_qingfen_website():
 </div>
 
 <script>
+// ==========================
+// 配置项：替换成你的ngrok公网地址
+// ==========================
+const API_BASE_URL = "http://localhost:5000"; // 本地测试用，上线替换成ngrok地址
+
 // ==========================
 // 1. 页面切换核心功能
 // ==========================
@@ -717,7 +723,7 @@ const defaultQuestions = [
     { title: "明英宗率50万大军御驾亲征，诸位怎么看？", options: [{ text: "肯定是事实，《否泰录》《明史纪事本末》《明史》都这么写，相互印证", score: 5 }, { text: "值得怀疑，因为有不同史料记载，比如20万等等，不能确定孰是孰非", score: 0 }, { text: "不可信，因为五十万大军的行军速度不可能达到《明史》等行军日期的速度，即使是五万人也有点勉强", score: -5 }] },
     { title: "对于“地理大发现”一词，诸位是怎么看待的？", options: [{ text: "客观描述了十五世纪末西方国家崛起的探索精神", score: 5 }, { text: "带有明显西方中心论的色彩", score: -5 }] },
     { title: "你认为公元1840年前的中国和世界的关系？", options: [{ text: "基本是两个完全没有交流的地方，中国因为儒家的华夷之辩而形成天朝上国的心态，实际处于一个亚空间", score: 5 }, { text: "有一定交流，但由于孔教文明与基督的异质性，导致中国在近代必然落后于西方，这和交流多少没有本质关系", score: -5 }, { text: "当然有频繁交流，因此横向对比历史发展是完全可取而且正确的，清朝不能为近代屈辱找借口", score: -5 }] },
-    { title: "明末时，丰臣秀吉又没有权力统一中国？", options: [{ text: "当然有，那时候中国还是一个纯地理概念，谁来了只要有本事都可以成为正统，即使是爱斯基摩人，只要有本事打下皇位，就有资格。反正自有大儒辩经", score: 5 }, { text: "当然没有资格。古代中国绝不仅仅是个地理概念，更是具有政治、文化、经济等概念，丰臣秀吉的行为本质是侵略，不能因为他打下一块领土就说他是正统", score: -5 }] },
+    { title: "明末时，丰臣秀吉有没有权力统一中国？", options: [{ text: "当然有，那时候中国还是一个纯地理概念，谁来了只要有本事都可以成为正统，即使是爱斯基摩人，只要有本事打下皇位，就有资格。反正自有大儒辩经", score: 5 }, { text: "当然没有资格。古代中国绝不仅仅是个地理概念，更是具有政治、文化、经济等概念，丰臣秀吉的行为本质是侵略，不能因为他打下一块领土就说他是正统", score: -5 }] },
     { title: "秦灭六国是不是华夏文明的大倒退？", options: [{ text: "是，大一统虽然是趋势，但不能因为结果正义就说是文明正义。统一文字和度量衡应该用于文化交流和地区间沟通，但秦始皇一方面焚书坑儒破坏文化，另一方面用极重的徭役限制人身自由。", score: 5 }, { text: "否，秦灭六国具有明显积极意义，因为它用郡县制代替分封制，加强中央集权。在古代生产力下，个体想要保护自己不受剥是不可能的，让渡一部分权力组成中央集权，对于保障社会稳定和生产发展在长期显然是进步的", score: -5 }] },
     { title: "你对于“炎黄子孙”一词的看法？", options: [{ text: "不接受，这是强行让我们追认原始社会的不足首领，想要复古，用“中华儿女”就好了", score: 5 }, { text: "不排斥，但对于少数民族，这种说法可能会欠考虑，例如葛剑雄老师就是这么认为的，最好还是换个其他词", score: 5 }, { text: "完全认同，这是文化传承和文化自信的体现，和复古、排斥少数民族没有任何关系", score: -5 }] },
     { title: "当有人说“匈奴汉，鲜卑唐，沙陀宋，回回明”时，你是什么态度？", options: [{ text: "跟着起哄，觉得很有趣，历史就应该娱乐化多元化", score: 5 }, { text: "感到不舒服，倾向反驳或走人，这是对主体民族传统文化的解构", score: -5 }] },
@@ -736,11 +742,11 @@ const defaultQuestions = [
     { title: "第二次鸦片战争时塘沽口炮台的炮还是万历年间的，这说明", options: [{ text: "不正是明朝火器差的体现吗？最后输给了英法联军", score: 5 }, { text: "儒家对火药的研究局限于烟花，西方人则喜欢制造大炮，这是两种文化差异的体现", score: 0 }, { text: "说明清朝统治者对于火器的研究几乎停滞，根本不注重战备提升，思想陈腐", score: -5 }] },
     { title: "关于金庸的武侠小说", options: [{ text: "这时现代文学的杰出代表，同时可以在快意恩仇中学习历史，一举多得", score: 5 }, { text: "文学性很强，也很推荐，但不建议用武侠小说学历史", score: 0 }, { text: "金庸不少作品存在明显崇清贬明的倾向，和他早年的各种转换身份相关，阅读时必须多加留意，或者不推荐", score: -5 }] },
     { title: "历史上汉人喜欢内斗，西方人讲求和解", options: [{ text: "诚然，这都是秦制、外儒内法等恶性肿瘤造成的，现代化必须与过去的封建文化割裂", score: 5 }, { text: "承认这一点并不丢人，愿意表示自己各方面不如他人的人肯定是心胸宽阔，不会对自己造成任何负面影响", score: 0 }, { text: "这个说法本身就有问题。明朝同时期英国的红白玫瑰之战不就是一个例子吗？", score: -5 }] },
-    { title: "康熙爱好科学却推行不下去，怎么看待？", options: [{ text: "儒教官员因为秦制和孔老二的思想，对外来事物如洪水猛兽，拒绝推行", score: 5 }, { text: "康熙自己就没想推行，怕人用了危机自己的统治", score: -5 }] },
+    { title: "康熙爱好科学却推行不下去，怎么看待？", options: [{ text: "儒教官员因为秦制和孔老二的思想，对外来事物如洪水猛兽，拒绝推行", score: 5 }, { text: "康熙自己就没想推行，怕人用了危及自己的统治", score: -5 }] },
     { title: "你是否认为宋明时期的理学和清朝时期的训诂学一脉相承", options: [{ text: "是的，就是因为宋明理学开始内敛蔽塞，导致清朝的学术风气更加文本主义", score: 5 }, { text: "不是，宋明理学真正的到了清朝才被彻底僵化，训诂学的爆发与清朝文字狱关系更大", score: -5 }] },
     { title: "你认为朱元璋屠湖南的传说是否可信？", options: [{ text: "可信度大/板上钉钉，因为民间朱元璋屠湖南的说法已经流传许久，还有不少故事和文化习俗佐证", score: 5 }, { text: "可信度低/不可信，当时就没有一个行政区叫湖南，而且朱元璋的主战场也不在湖南", score: -5 }] },
     { title: "清朝的统治核心与宋明汉唐等传统封建王朝有明显区别", options: [{ text: "不认可，不都是皇权和士绅大地主为基础吗？", score: 5 }, { text: "认可，清朝本质就是套着封建王朝的以马治人模式，关外马队才是治理核心", score: -5 }] },
-    { title: "秘密立储比起立嫡立长具有优势，可以避免皇储间的斗争", options: [{ text: "的确，秘密立储可以规避长子昏庸的情形（如司马衷），不论是乾隆、嘉庆、道光还是咸丰都没有经历过皇位争夺与搏杀，为维护国家政治运转提供了有效保障", score: 5 }, { text: "恰恰相反，秘密立储保证了皇帝随心所欲地挑选继承人，且储君为了征得这一名额也可以相互暗害，而皇帝的决策如果失当，大臣也失去了劝谏的机会，从长期看是不如嫡长子继承制的", score: -5 }] },
+    { title: "秘密立储比起立嫡立长具有优势，可以避免皇储间的斗争", options: [{ text: "的确，秘密立储可以规避长子昏庸的情形（如司马衷），不论是乾隆、嘉庆、道光还是咸丰都没有经历过权力斗争", score: 5 }, { text: "不是，这导致大臣无法知晓皇帝候选人的身份，无法进行劝谏，皇子之间还是可以为了获得这个资格而各种明争暗斗", score: -5 }] },
     { title: "大家认为‘满城’是个怎样的制度", options: [{ text: "有效促进民族融合，在战时有优秀的防御作用", score: 5 }, { text: "赤裸裸的种族隔离，为了防止被主体定居民族同化或者反抗，把满人全部限制在工事之内居住。如果是为了抵御外侮，直接按照内外城建设不久行了吗？待到秋来双十日，‘满城’尽带黄金甲", score: -5 }] },
     { title: "您觉得清军对少数民族的屠杀，责任在谁？", options: [{ text: "虽然清军入关前就干过不少类似的，最高决策者大多是旗人，皇帝也有拍板权，但责任主要在征服汉地后所占然的秦制儒家文化", score: 5 }, { text: "这是内亚蛮族产训一体、以战养战的一贯作风", score: -5 }] },
     { title: "如果明朝能撑到1840年，它面对列强的表现能明显优于清朝", options: [{ text: "认可，明朝和清朝本来就是两套治理模式，明朝对于工业化、近代化的制约要显著小于清朝", score: -5 }, { text: "不认可，明清都是封建王朝，封建社会一个样，都必然落后于以资本主义为主的列强", score: 5 }] },
@@ -863,6 +869,7 @@ function loadQuestion() {
 }
 
 // 显示结果（修改分数区间判断逻辑）
+// 显示结果（修改分数区间判断逻辑）
 function showResult() {
     showPage('result');
     document.getElementById('finalScore').textContent = score + ' 分';
@@ -892,8 +899,14 @@ function showResult() {
     document.getElementById('resultDesc').textContent = desc;
     renderScoreBars();
     
+    // 提交结果到服务器
+    submitResultToServer(key);
+}
+
+// 1. 改submitResultToServer函数（删掉本地存储，改接口地址）
 async function submitResultToServer(key) {
     try {
+        // 把下面的地址换成你的ngrok公网地址
         const res = await fetch("https://superpopulated-superloyal-sariah.ngrok-free.dev/api/submit-result", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -901,38 +914,28 @@ async function submitResultToServer(key) {
         });
         const data = await res.json();
         if (data.code === 200) {
-            // 更新页面显示为全网数据
             totalTests = data.data.totalTests;
             resultStats = data.data.resultStats;
             updateAll();
         }
     } catch (e) {
-        console.log("提交全网数据失败，使用本地数据:", e);
-        // 降级：仍使用本地数据
-        resultStats[key]++; 
-        totalTests++;
-        safeSetStorage('resultStats', resultStats);
-        safeSetStorage('totalTests', totalTests);
+        console.log("提交失败:", e);
+        // 删掉这里所有的localStorage相关代码（比如resultStats[key]++、safeSetStorage等）
     }
 }
 
-// 在showResult函数中调用
-submitResultToServer(key);
-    
-// 原window.onload中的updateAll()替换为：
+// 2. 改loadGlobalStats函数（删掉本地存储，改接口地址）
 async function loadGlobalStats() {
     try {
+        // 同样换成你的ngrok公网地址
         const res = await fetch("https://superpopulated-superloyal-sariah.ngrok-free.dev/api/get-global-stats");
         const data = await res.json();
         totalTests = data.totalTests;
         resultStats = data.resultStats;
-        updateAll(); // 渲染全网数据
-    } catch (e) {
-        console.log("获取全网数据失败，使用本地数据:", e);
-        // 降级：使用本地存储
-        totalTests = safeGetStorage('totalTests', 0);
-        resultStats = safeGetStorage('resultStats', resultStats);
         updateAll();
+    } catch (e) {
+        console.log("加载失败:", e);
+        // 删掉这里所有的localStorage相关代码（比如safeGetStorage）
     }
 }
 
