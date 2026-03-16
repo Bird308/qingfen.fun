@@ -894,7 +894,7 @@ function showResult() {
     
 async function submitResultToServer(key) {
     try {
-        const res = await fetch("http://https://superpopulated-superloyal-sariah.ngrok-free.dev/api/submit-result", {
+        const res = await fetch("https://superpopulated-superloyal-sariah.ngrok-free.dev/api/submit-result", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({key: key})
@@ -922,7 +922,7 @@ submitResultToServer(key);
 // 原window.onload中的updateAll()替换为：
 async function loadGlobalStats() {
     try {
-        const res = await fetch("http://https://superpopulated-superloyal-sariah.ngrok-free.dev/api/get-global-stats");
+        const res = await fetch("https://superpopulated-superloyal-sariah.ngrok-free.dev/api/get-global-stats");
         const data = await res.json();
         totalTests = data.totalTests;
         resultStats = data.resultStats;
