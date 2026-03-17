@@ -423,23 +423,18 @@ def create_qingfen_website():
 // 1. 页面切换核心功能
 // ==========================
 function showPage(id) {
-    // 隐藏所有页面
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    // 显示目标页面
     document.getElementById(id).classList.add('active');
-    // 更新导航栏激活状态
-    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-    // 找到对应导航链接并激活
-    const navLinks = document.querySelectorAll('.nav-links a');
-    navLinks.forEach(link => {
-        if (link.getAttribute('onclick') && link.getAttribute('onclick').includes(`showPage('${id}')`)) {
-            link.classList.add('active');
+
+    document.querySelectorAll('.nav-links a')
+        .forEach(a => a.classList.remove('active'));
+
+    document.querySelectorAll('.nav-links a').forEach(a => {
+        if (a.getAttribute('onclick') &&
+            a.getAttribute('onclick').includes(`showPage('${id}')`)) {
+            a.classList.add('active');
         }
     });
-    // 如果是点击导航栏触发的，激活当前点击的链接
-    if (event && event.target.tagName === 'A') {
-        event.target.classList.add('active');
-    }
 }
 
 // ==========================
